@@ -1,296 +1,448 @@
-# NUTRIA — Taller de Module Federation
+# NUTRIA — `nutria-shell`
 
-## 1. Descripción
+> Frontend principal de NUTRIA · HOST de Module Federation
 
-NUTRIA es el contexto académico sobre el que se construye este taller. El
-repositorio corresponde a un **taller** cuyo objetivo es aprender a
-desarrollar una arquitectura de **Micro Frontends** utilizando **Module
-Federation**.
+---
 
-La idea central es construir un **contenedor principal (Host)** capaz de
-consumir distintos **Micro Frontends independientes (Remotes)**, cada uno
-perteneciente a un dominio del negocio.
+## 1. Propósito del repositorio
 
-El taller no busca desarrollar funcionalidades de negocio complejas. Su
-objetivo es comprender, de forma práctica y progresiva, el siguiente flujo:
+`nutria-shell` es el **frontend principal de NUTRIA**. Es la aplicación desde la
+que el usuario entra y sobre la que se construye todo lo demás.
+
+Su responsabilidad es actuar como:
+
+- **HOST** de Module Federation.
+- **Orquestador** de los Microfrontends.
+- **Punto de entrada** de la aplicación frontend.
+- Responsable de la **composición** de los diferentes Microfrontends.
+- Responsable de las **capacidades transversales** del frontend.
+
+En esta primera etapa del taller solamente se trabaja con dos aplicaciones:
+
+```
+nutria-shell
+     HOST
+       │
+       │ Module Federation
+       ▼
+nutria-mfe-afiliados
+     REMOTE
+```
+
+`nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
+todavía no se crean y no se documentan como implementados.
+
+> Este repositorio es nuevo y se encuentra en estado inicial. No existe todavía
+> código de aplicación ni configuración técnica.
+
+---
+
+## 2. Arquitectura
+
+La arquitectura inicial del taller es:
+
+```
+                    NUTRIA
+                      │
+                      ▼
+                nutria-shell
+              HOST / ORQUESTADOR
+                      │
+              Module Federation
+                      │
+                      ▼
+             nutria-mfe-afiliados
+                    REMOTE
+```
+
+Para entender este diagrama:
+
+- **`nutria-shell` es el HOST.** Es la aplicación anfitriona: la que el usuario
+  abre y la que contiene la estructura general.
+- **`nutria-shell` actúa como orquestador.** Decide qué Microfrontends se
+  muestran, dónde y en qué momento.
+- **`nutria-mfe-afiliados` es un Remote independiente.** Es otra aplicación,
+  con su propio repositorio, su propio código y su propio proceso de build.
+- **Cada Microfrontend tendrá su propio repositorio.** Por eso este repositorio
+  no contiene el código de los MFEs.
+- **Module Federation** es el mecanismo que permite que el HOST consuma los
+  módulos que exponen los Remotes en tiempo de ejecución.
+
+---
+
+## 3. Repositorios independientes
+
+NUTRIA adopta una arquitectura de Microfrontends en la que **cada aplicación
+tiene su propio repositorio**:
+
+```
+Git
+│
+├── nutria-shell
+│     └── HOST / Orquestador
+│
+├── nutria-mfe-afiliados
+│     └── REMOTE
+│
+└── nutria-design-system
+      └── recursos compartidos
+```
+
+Puntos clave:
+
+- `nutria-shell` **NO contiene físicamente el código fuente** de los MFEs.
+- Los MFEs son **aplicaciones independientes**, con su propio ciclo de vida.
+- El Shell los **integra mediante Module Federation**, no por copia de código.
+- `nutria-design-system` será un repositorio/librería independiente para
+  compartir estilos y componentes.
+
+---
+
+## 4. Tecnología
+
+Tecnologías definidas para el Shell:
+
+- **Next.js 15**
+- **React**
+- **TypeScript**
+- **Module Federation**
+- **Webpack** — tecnología utilizada para la integración de Module Federation.
+- **pnpm** — gestor de paquetes.
+- **CSS**
+
+> Estas tecnologías están **definidas para el taller**, pero la configuración
+> real (dependencias instaladas, scripts, configuración del bundler) **aún no
+> existe**. Este documento no incluye esa configuración.
+
+---
+
+## 5. Responsabilidades del Shell
+
+A continuación se describen conceptualmente las responsabilidades de
+`nutria-shell`.
+
+### Orquestación
+
+El Shell es responsable de integrar y presentar los diferentes Microfrontends.
+Él es quien los conoce y los coordina.
+
+### Navegación
+
+El Shell será responsable de la navegación principal de la aplicación.
+
+### Composición
+
+El Shell determina **dónde y cómo** se presentan los diferentes MFEs dentro de su
+interfaz.
+
+### Seguridad transversal
+
+La arquitectura contempla que el Shell sea responsable de las capacidades
+transversales relacionadas con:
+
+- autenticación
+- autorización
+- sesión
+- control de acceso
+
+> **Estas capacidades todavía NO están implementadas en esta etapa.** Se
+> construirán más adelante en el taller.
+
+Además, la seguridad del frontend **NO reemplaza** las validaciones de
+seguridad que deben realizar los servicios backend. La autorización real
+siempre debe verificarse del lado del servidor.
+
+---
+
+## 6. Module Federation
+
+Module Federation cumple un papel sencillo: **permite que una aplicación use
+módulos publicados por otra aplicación**, sin que tengan que formar parte del
+mismo proyecto.
 
 ```
 HOST
-  ↓
-Module Federation
-  ↓
+  │
+  │ consume
+  ▼
 REMOTE
-  ↓
-módulo expuesto
-  ↓
-renderizado dentro del HOST
+  │
+  │ expone
+  ▼
+módulo/componente
 ```
 
-> **Este repositorio es un proyecto nuevo y se encuentra en etapa inicial.**
-> La arquitectura descrita en este documento es la arquitectura **objetivo**,
-> que se construirá durante el taller. No es un sistema productivo.
+### Host
+
+Aplicación que **consume** módulos de otras aplicaciones.
+
+En NUTRIA:
+
+```
+nutria-shell = HOST
+```
+
+### Remote
+
+Aplicación independiente que **expone** módulos para que otras aplicaciones
+puedan consumirlos.
+
+En esta etapa:
+
+```
+nutria-mfe-afiliados = REMOTE
+```
+
+### `exposes`
+
+Concepto utilizado por el **Remote** para indicar qué módulos pone a
+disposición de otros.
+
+### `remotes`
+
+Concepto utilizado por el **Host** para declarar qué aplicaciones remotas
+consume.
+
+### `remoteEntry`
+
+Punto de entrada que utiliza Module Federation para **descubrir y cargar** los
+módulos expuestos por un Remote.
+
+> Estos son los conceptos que se usarán en el taller. No se documentan aquí
+> nombres de archivos, URLs, puertos ni configuraciones concretas, porque
+> todavía no están implementados.
 
 ---
 
-## 2. Arquitectura objetivo
+## 7. Relación con el backend
+
+El Shell y los Microfrontends pertenecen a la **capa frontend**. La comunicación
+con los microservicios del backend es **independiente** de Module Federation.
 
 ```
-                         ┌───────────────────┐
-                         │    SHELL-NUTRIA   │
-                         │       HOST        │
-                         │                   │
-                         │ Contenedor        │
-                         │ principal         │
-                         └─────────┬─────────┘
-                                   │
-                         Module Federation
-                                   │
-             ┌─────────────────────┼─────────────────────┐
-             │                     │                     │
-             ▼                     ▼                     ▼
-      ┌────────────┐        ┌────────────┐        ┌────────────┐
-      │ AFILIADOS  │        │  APORTES   │        │ EMPRESAS   │
-      │   REMOTE   │        │   REMOTE   │        │   REMOTE   │
-      └────────────┘        ┌────────────┘        └────────────┘
-                                   │
-                              ┌────┴─────┐
-                              ▼          ▼
-                       ┌────────────┐ ┌────────────┐
-                       │ HISTORIAL  │ │ PENSIONES  │
-                       │   REMOTE   │ │   REMOTE   │
-                       └────────────┘ └────────────┘
+                    FRONTEND
+                       │
+                 nutria-shell
+                 HOST / Orquestador
+                       │
+               Module Federation
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+    MFE Afiliados              otros MFEs
+          │
+          │ HTTP / APIs
+          ▼
+                 BACKEND
+                    │
+              Microservicios
+                    │
+                 Oracle
 ```
 
-### Conceptos clave
+Es importante no confundir ambos mecanismos:
 
-**Host**
-Es la aplicación principal (contenedor/shell). Es responsable de definir la
-estructura general, la navegación y los puntos de entrada donde se monta cada
-Micro Frontend. En el taller, el Host es `shell-nutria`.
+- **Module Federation** conecta y comparte **módulos frontend** (Host ↔ Remote).
+- **REST / HTTP** conecta el **frontend con los servicios backend**.
 
-**Remote**
-Es una aplicación independiente que expone uno o más módulos para ser
-consumidos por un Host. Cada Remote mantiene su propio código, su propio
-proceso de build y su propio ciclo de despliegue. En el taller, cada Remote
-se corresponde con un dominio: `mfe-afiliados`, `mfe-aportes`,
-`mfe-empresas`, `mfe-historial-laboral` y `mfe-pensiones`.
-
-**Module Federation**
-Es el mecanismo que habilita la integración en runtime entre aplicaciones
-separadas. Permite que el Host resuelva y cargue módulos publicados por otros
-proyectos en tiempo de ejecución, sin necesidad de compilar todo en un único
-bundle.
-
-**Relación Host → Remote**
-El Host *declara* qué módulo remoto necesita consumir (su nombre público y su
-origen). El Remote, por su parte, *expone* ese módulo publicado bajo ese mismo
-nombre. Cuando el Host lo referencia, el módulo se carga y se renderiza dentro
-de la interfaz del Host, manteniendo su implementación en el repositorio del
-Remote.
+Son mecanismos **diferentes y complementarios**. Module Federation no es una
+alternativa a REST: uno resuelve la composición entre aplicaciones frontend y
+el otro la comunicación con los datos del negocio.
 
 ---
 
-## 3. Estructura de árbol
+## 8. Design System
 
-La siguiente es la **estructura objetivo** del taller, es decir, la que se
-construirá progresivamente. Actualmente el repositorio contiene únicamente los
-archivos base:
+NUTRIA tendrá un repositorio independiente:
 
-```text
-NUTRIA-MODULE-FEDERATION/
+```
+nutria-design-system
+```
+
+Su objetivo será compartir:
+
+- estilos
+- componentes visuales
+- tipografía
+- colores
+- espaciados
+- botones
+- inputs
+- cards
+- elementos visuales reutilizables
+
+El Shell consumirá este Design System, y los Microfrontends también podrán
+consumirlo.
+
+Los estilos se desarrollarán utilizando **CSS**. No se utilizarán Tailwind,
+styled-components ni CSS-in-JS.
+
+El Design System debe permitir mantener una **identidad visual consistente**
+entre el Shell y los diferentes MFEs.
+
+> `nutria-design-system` todavía no existe. Se creará en la etapa 3 del
+> roadmap.
+
+---
+
+## 9. Referencia visual
+
+Existe un concepto visual de NUTRIA en:
+
+```
+NUTRIA_concepto_visual.html
+```
+
+El proyecto debe utilizar ese archivo como **referencia visual** para definir
+posteriormente:
+
+- colores
+- tipografía
+- espaciado
+- navegación
+- botones
+- tarjetas
+- formularios
+- jerarquía visual
+
+El HTML es únicamente una **referencia visual**. Los estilos finales deberán
+organizarse dentro del **Design System** y de los archivos **CSS** de cada
+proyecto.
+
+> El diseño visual **no está implementado**. Este documento no describe la
+> interfaz final.
+
+---
+
+## 10. Primera etapa del taller
+
+La primera etapa tiene un objetivo concreto:
+
+```
+HOST → MODULE FEDERATION → REMOTE
+```
+
+Específicamente:
+
+```
+nutria-shell
+    │
+    │ Module Federation
+    ▼
+nutria-mfe-afiliados
+```
+
+El objetivo es que el Shell **pueda consumir un módulo expuesto por el MFE de
+Afilados**.
+
+Esta integración será el **primer ejercicio práctico** del taller: el momento en
+que se demuestra que la arquitectura Host/Remote funciona.
+
+---
+
+## 11. Roadmap
+
+### Etapa 1 — Shell
+
+- Crear `nutria-shell`.
+- Configurar Next.js 15.
+- Preparar estructura base.
+- Preparar Host.
+
+### Etapa 2 — Primer Remote
+
+- Crear `nutria-mfe-afiliados`.
+- Configurarlo como Remote.
+- Exponer un módulo.
+- Conectarlo con `nutria-shell`.
+
+### Etapa 3 — Design System
+
+- Crear `nutria-design-system`.
+- Definir estilos compartidos.
+- Crear componentes visuales reutilizables.
+- Consumirlo desde Shell y MFEs.
+
+### Etapa 4 — Nuevos Microfrontends
+
+Posteriormente:
+
+- `nutria-mfe-aportes`
+- `nutria-mfe-empresas`
+- `nutria-mfe-historial-laboral`
+- `nutria-mfe-pensiones`
+
+Cada uno en su **propio repositorio**.
+
+### Etapa 5 — Capacidades transversales
+
+Posteriormente implementar en el Shell:
+
+- autenticación
+- autorización
+- sesión
+- navegación
+- control de acceso
+
+> **Ninguna de estas etapas está completada.** Son el plan de trabajo del
+> taller.
+
+---
+
+## 12. Estructura conceptual
+
+Cada aplicación es un repositorio independiente:
+
+```
+Git Repositories
 │
-├── shell-nutria/                  # HOST
-├── mfe-afiliados/                 # REMOTE
-├── mfe-aportes/                   # REMOTE
-├── mfe-empresas/                  # REMOTE
-├── mfe-historial-laboral/         # REMOTE
-├── mfe-pensiones/                 # REMOTE
+├── nutria-shell
+│   └── Next.js 15
+│       └── HOST / Orquestador
+│
+├── nutria-mfe-afiliados
+│   └── REMOTE
+│
+└── nutria-design-system
+    └── estilos y componentes compartidos
+```
+
+Los Microfrontends que se agregarán en etapas posteriores, cada uno en su propio
+repositorio:
+
+```
+├── nutria-mfe-aportes
+├── nutria-mfe-empresas
+├── nutria-mfe-historial-laboral
+└── nutria-mfe-pensiones
+```
+
+Dentro de este repositorio (`nutria-shell`) **no** se crean carpetas para los
+demás MFEs. Su contenido inicial es:
+
+```
+nutria-shell/
+│
 ├── NUTRIA_concepto_visual.html
 ├── .gitignore
 └── README.md
 ```
 
-Los directorios `shell-nutria/` y `mfe-*/` **aún no existen**; se agregarán a
-medida que se completen las etapas descritas en la sección 8.
-
 ---
 
-## 4. Módulos federados conectados desde un contenedor principal
+## 13. Estado actual
 
-El flujo de integración del taller es el siguiente:
-
-```
-HOST
-  │
-  │ Module Federation
-  ▼
-REMOTE
-  │
-  │ expone módulo
-  ▼
-Módulo federado
-  │
-  ▼
-HOST
-```
-
-Pasos del flujo:
-
-1. El **Remote** publica (*expone*) un módulo bajo un nombre público.
-2. El **Host** declara ese mismo nombre público y le indica de dónde obtenerlo.
-3. El **Host** importa el módulo y lo renderiza en su propia interfaz.
-4. El módulo se visualiza **dentro** del Host, como parte de la aplicación.
-
-> **Importante:** el código del Remote permanece en su propia aplicación. No
-> se copia físicamente al Host. Lo que viaja entre aplicaciones es una
-> referencia al módulo publicado, no el código fuente del Remote.
-
-Este punto es fundamental: un Remote puede evolucionar y publicarse de forma
-independiente, sin necesidad de reescribir el Host.
-
----
-
-## 5. Next.js y tecnologías
-
-El taller utilizará el siguiente stack frontend:
-
-- **Next.js 15** o una versión anterior compatible con la estrategia de
-  Module Federation que se adopte.
-- **React**
-- **TypeScript**
-- **Module Federation**
-
-> La versión exacta de Next.js, el plugin de federation y el resto de
-> dependencias **aún no están definidos** en el proyecto. No se documenta aquí
-> configuración alguna porque todavía no existe: la configuración real de
-> `next.config` y `remotes` se escribirá cuando se construya el Host y el
-> primer Remote.
-
----
-
-## 6. Design System
-
-El taller puede apoyarse en una librería de componentes desarrollada en
-React como **Design System** compartido por el Host y los Remotes.
-
-Sin embargo, el Design System **no es el objetivo principal de este
-repositorio**. El foco del taller es aprender cómo un Host consume Micro
-Frontends mediante Module Federation. Cualquier decisión sobre estilos,
-tokens o librería de componentes es secundaria y se irá tomando durante el
-desarrollo.
-
----
-
-## 7. Inicio del proyecto
-
-El repositorio se encuentra actualmente en estado inicial: **no existen
-todavía comandos de inicio, scripts ni configuraciones**, porque las
-aplicaciones aún no han sido creadas.
-
-El flujo de arranque previsto para el taller es el siguiente:
-
-1. **Crear el Host** (`shell-nutria`) con Next.js + React + TypeScript.
-2. **Crear el primer Remote** (`mfe-afiliados`) como proyecto independiente.
-3. **Configurar Module Federation** en ambas aplicaciones.
-4. **Exponer un módulo** desde el Remote.
-5. **Consumirlo desde el Host** importando el módulo remoto.
-6. **Validar la integración** comprobando que el módulo se renderiza dentro
-   del Host.
-7. **Agregar los demás Remotes** replicando el patrón ya validado.
-
-> Cuando existan scripts y comandos reales, esta sección se actualizará con las
-> instrucciones exactas de ejecución.
-
----
-
-## 8. Etapas del taller
-
-### Etapa 1
-Crear `shell-nutria` como **HOST**.
-
-### Etapa 2
-Crear `mfe-afiliados` como primer **REMOTE**.
-
-### Etapa 3
-Conectar el Host con el primer Remote:
-
-```
-shell-nutria
-    │
-    ▼
-mfe-afiliados
-```
-
-### Etapa 4
-Agregar los restantes Remotes, aplicando el mismo patrón ya validado:
-
-- `mfe-aportes`
-- `mfe-empresas`
-- `mfe-historial-laboral`
-- `mfe-pensiones`
-
----
-
-## 9. Objetivos de aprendizaje
-
-- Concepto de **Micro Frontends** y sus ventajas frente a un monolito de
-  frontend.
-- Diferencia entre **Host** y **Remote**.
-- Funcionamiento interno de **Module Federation**.
-- Publicación y consumo de **módulos expuestos**.
-- **Consumo de módulos federados** desde una aplicación anfitriona.
-- **Integración de aplicaciones independientes** en runtime.
-- **Organización por dominios** como criterio para separar los Micro
-  Frontends.
-
----
-
-## 10. Relación con backend
-
-El frontend del taller pertenece al contexto general de NUTRIA y,
-posteriormente, podrá consumir las APIs del backend. De manera conceptual:
-
-```
-FRONTEND
-   │
-   ▼
-SHELL-NUTRIA
-   │
-   ├── MFE Afiliados
-   ├── MFE Aportes
-   ├── MFE Empresas
-   ├── MFE Historial
-   └── MFE Pensiones
-             │
-             ▼
-        APIs BACKEND
-             │
-             ▼
-       Microservicios
-             │
-             ▼
-        Oracle / PL-SQL
-```
-
-> Esta relación es **únicamente conceptual** en el contexto del taller. La
-> implementación interna del backend no forma parte de este repositorio ni
-> está documentada aquí.
-
----
-
-## 11. Estado del proyecto
-
-El proyecto se encuentra en **etapa inicial / en desarrollo**. El repositorio
-es nuevo y la implementación del Host y de los Remotes **será construida
-durante el taller**.
+El proyecto se encuentra en **etapa inicial**. En este repositorio **aún no
+existe** código de aplicación, configuración técnica, dependencias instaladas
+ni Microfrontends conectados.
 
 Checklist:
 
 - [x] Crear repositorio
-- [ ] Crear Host
-- [ ] Crear primer Remote
+- [ ] Crear `nutria-shell` como Host / orquestador
 - [ ] Configurar Module Federation
-- [ ] Conectar Host → Remote
-- [ ] Agregar demás Remotes
-- [ ] Integrar funcionalidades
-- [ ] Integrar backend
+- [ ] Conectar `nutria-shell` → `nutria-mfe-afiliados`
+- [ ] Crear `nutria-design-system`
+- [ ] Implementar autenticación / autorización / sesión
+- [ ] Incorporar los demás Microfrontends
+- [ ] Integrar APIs del backend
