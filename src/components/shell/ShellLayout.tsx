@@ -8,5 +8,9 @@ import styles from "./ShellLayout.module.css";
  * donde se compondrán los Microfrontends remotos.
  */
 export function ShellLayout({ children }: { children: ReactNode }) {
-  return <main className={styles.content}>{children}</main>;
+  return (
+    <main className={styles.content}>
+      <div className={styles.stack}>{children}</div>
+    </main>
+  );
 }

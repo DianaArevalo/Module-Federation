@@ -1,8 +1,18 @@
 .content {
+  display: grid;
+  align-content: center;
   width: 100%;
   max-width: 920px;
+  min-height: 100dvh;
   margin: 0;
   padding: 32px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
 }
 
 @media (max-width: 860px) {

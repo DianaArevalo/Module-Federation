@@ -32,9 +32,9 @@ nutria-mfe-afiliados
 `nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
 todavía no se crean y no se documentan como implementados.
 
-> Este repositorio está en la etapa **HU-02 — Esqueleto del Host**: la
-> aplicación base ya existe y compila, pero todavía **no** hay navegación,
-> autenticación, autorización, sesión ni Microfrontends conectados.
+> Este repositorio está en la etapa **HU-03 — Identidad visual del Shell**: la
+> aplicación ya tiene su lenguaje visual propio, pero todavía **no** hay
+> navegación, autenticación, autorización, sesión ni Microfrontends conectados.
 
 ---
 
@@ -299,8 +299,7 @@ Existe un concepto visual de NUTRIA en:
 NUTRIA_concepto_visual.html
 ```
 
-El proyecto debe utilizar ese archivo como **referencia visual** para definir
-posteriormente:
+El proyecto utiliza ese archivo como **referencia visual** para definir:
 
 - colores
 - tipografía
@@ -311,12 +310,31 @@ posteriormente:
 - formularios
 - jerarquía visual
 
-El HTML es únicamente una **referencia visual**. Los estilos finales deberán
-organizarse dentro del **Design System** y de los archivos **CSS** de cada
-proyecto.
+El HTML es únicamente una **referencia visual**. Los estilos se organizan en
+archivos **CSS** dentro del proyecto. Más adelante, parte de estos tokens
+pasarán al Design System `nutria-design-system`, que es un repositorio aparte.
 
-> El diseño visual **no está implementado**. Este documento no describe la
-> interfaz final.
+### Decisiones visuales implementadas (HU-03)
+
+La identidad visual del Shell ya está implementada en CSS:
+
+| Elemento         | Decisión                                                        |
+| ---------------- | --------------------------------------------------------------- |
+| Colores          | Tokens de `src/styles/tokens.css` tomados del concepto visual   |
+| Tipografía       | Fraunces (display), IBM Plex Sans (texto), IBM Plex Mono (técnico) |
+| Tarjetas         | Fondo claro, borde de 1px, radio de 8px                          |
+| Acento           | Franja vertical de 5px en color de acento en la tarjeta principal |
+| Etiquetas        | Píldoras con fondo suave y texto en color de acento              |
+| Espaciado        | Escala de 4px a 32px definida en tokens                          |
+| Radios           | 6px, 8px y 999px (píldoras)                                      |
+| Sombras          | Sombra mínima en tarjetas                                        |
+
+Los estilos se aplican con **CSS Modules** en los componentes y una base
+global en `src/styles/globals.css`. No se usa Tailwind, styled-components,
+Emotion ni CSS-in-JS.
+
+> Los tokens de `tokens.css` están marcados como base local. Cuando exista
+> `nutria-design-system`, se reemplazarán por los tokens compartidos.
 
 ---
 
@@ -452,15 +470,16 @@ nutria-shell/
     ├── app/
     │   ├── favicon.ico
     │   ├── layout.tsx           # layout raíz: fuentes y estilos globales
-    │   └── page.tsx             # página inicial
+    │   └── page.tsx             # pantalla base del Shell
     │
     ├── components/
-    │   ├── home/
-    │   │   ├── IdentityCard.tsx          # identifica el Shell como HOST
-    │   │   └── IdentityCard.module.css
     │   └── shell/
-    │       ├── ShellLayout.tsx           # contenedor base del Shell
-    │       └── ShellLayout.module.css
+    │       ├── ShellLayout.tsx        # contenedor base del Shell
+    │       ├── ShellLayout.module.css
+    │       ├── ShellIdentity.tsx      # tarjeta de identidad del Shell
+    │       ├── ShellIdentity.module.css
+    │       ├── HostConcept.tsx        # NUTRIA → SHELL → HOST / ORQUESTADOR
+    │       └── HostConcept.module.css
     │
     ├── config/
     │   └── architecture.ts      # datos de identidad del Shell
@@ -473,10 +492,10 @@ nutria-shell/
 Separación de responsabilidades:
 
 | Carpeta         | Contenido                                            |
-| --------------- | ---------------------------------------------------- |
+| ---------------- | ---------------------------------------------------- |
 | `src/app`       | Páginas y layout de Next.js (App Router)             |
 | `src/components`| Componentes reutilizables del Shell                   |
-| `src/styles`    | Estilos CSS globales y tokens                         |
+| `src/styles`    | Estilos CSS globales, tokens y CSS Modules            |
 | `src/config`    | Datos de configuración del Shell                     |
 
 ---
@@ -524,15 +543,18 @@ pnpm typecheck   # TypeScript (tsc --noEmit)
 
 ## 15. Estado actual
 
-El proyecto se encuentra en la historia de usuario **HU-02 — Esqueleto del
-Host**. Ya existe la aplicación base del Shell y compila correctamente.
+El proyecto se encuentra en la historia de usuario **HU-03 — Identidad visual
+del Shell**. La aplicación base compila y la pantalla inicial ya tiene la
+identidad visual de NUTRIA.
 
 Implementado:
 
 - Aplicación Next.js 15 con TypeScript y pnpm.
-- Layout raíz y página inicial.
+- Layout raíz y pantalla base del Shell.
 - Contenedor base del Shell (`ShellLayout`).
-- Estilos CSS y tokens basados en `NUTRIA_concepto_visual.html`.
+- Identidad visual: `ShellIdentity` (NUTRIA · SHELL-NUTRIA · HOST / ORQUESTADOR)
+  y `HostConcept` (relación conceptual NUTRIA → SHELL-NUTRIA → HOST).
+- Tokens CSS y estilos basados en `NUTRIA_concepto_visual.html`.
 - Preparación técnica de Module Federation en `next.config.ts`.
 
 Pendiente:
@@ -546,6 +568,6 @@ Pendiente:
 - [ ] Incorporar los demás Microfrontends
 - [ ] Integrar APIs del backend
 
-> En esta etapa **no** hay navegación, autenticación, autorización, sesión ni
-> Remotes implementados. La tarjeta de la página inicial es puramente
-> identificativa.
+> En esta etapa **no** hay navegación, dashboard, autenticación, autorización,
+> sesión ni Remotes implementados. La pantalla es puramente identificativa y
+> no incluye acciones ni enlaces.
