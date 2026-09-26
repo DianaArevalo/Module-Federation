@@ -32,9 +32,9 @@ nutria-mfe-afiliados
 `nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
 todavía no se crean y no se documentan como implementados.
 
-> Este repositorio está en la etapa **HU-04 — Navegación del Shell**: la
-> aplicación tiene su identidad visual y su navegación principal, pero todavía
-> **no** hay dashboard, autenticación, autorización, sesión ni Microfrontends
+> Este repositorio está en la etapa **HU-05 — Página principal del Shell**: la
+> aplicación explica el taller, su arquitectura, sus dominios y su roadmap, pero
+> todavía **no** hay autenticación, autorización, sesión ni Microfrontends
 > conectados.
 
 ---
@@ -139,10 +139,11 @@ El Shell es responsable de la navegación principal de la aplicación. La
 navegación ya está implementada (ver sección 15):
 
 ```
-NUTRIA  ·  Inicio  ·  Afiliados (pendiente)
+NUTRIA   Qué es · Arquitectura · Dominios · Roadmap        [Iniciar sesión]
 ```
 
-Los Microfrontends **no** controlan la navegación global. Más adelante podrán
+Los enlaces del navbar apuntan a secciones de la misma página. Los
+Microfrontends **no** controlan la navegación global. Más adelante podrán
 tener navegación interna propia, pero siempre dentro del Shell.
 
 ### Composición
@@ -417,8 +418,11 @@ Posteriormente implementar en el Shell:
 - navegación
 - control de acceso
 
-> **Ninguna de estas etapas está completada.** Son el plan de trabajo del
-> taller.
+> **Estado de las etapas:** la etapa 1 está completada en el Shell. Las etapas
+> 2 a 5 están planificadas y todavía no se crean. La integración
+> HOST → Remote mediante Module Federation es el primer ejercicio práctico y
+> corresponde a la etapa 2. La navegación del Shell ya está implementada; el
+> resto de las capacidades transversales sigue pendiente.
 
 ---
 
@@ -479,25 +483,32 @@ nutria-shell/
     ├── app/
     │   ├── favicon.ico
     │   ├── layout.tsx           # layout raíz: fuentes, estilos y chrome del Shell
-    │   └── page.tsx             # ruta / (Inicio)
+    │   └── page.tsx             # ruta / (página principal del Shell)
     │
     ├── components/
+    │   ├── landing/
+    │   │   ├── Hero.tsx                 # presentación de NUTRIA
+    │   │   ├── AboutSection.tsx         # ¿Qué es? — un taller, no un producto
+    │   │   ├── ArchitectureSection.tsx   # NUTRIA → HOST → REMOTE
+    │   │   ├── DomainsSection.tsx       # dominios de NUTRIA
+    │   │   ├── DomainCard.tsx           # tarjeta de un dominio
+    │   │   ├── RoadmapSection.tsx       # etapas del taller
+    │   │   ├── Section.tsx              # base de las secciones
+    │   │   ├── StateBadge.tsx           # etiqueta implementado / pendiente
+    │   │   ├── Footer.tsx               # footer del Shell
+    │   │   └── *.module.css
     │   ├── navigation/
-    │   │   ├── ShellHeader.tsx        # navegación principal del Shell
-    │   │   └── ShellHeader.module.css
+    │   │   ├── Navbar.tsx               # navbar con enlaces a secciones
+    │   │   └── Navbar.module.css
     │   └── shell/
-    │       ├── ShellLayout.tsx        # contenedor base del Shell
-    │       ├── ShellLayout.module.css
-    │       ├── ShellIdentity.tsx      # tarjeta de identidad del Shell
-    │       ├── ShellIdentity.module.css
-    │       ├── HostConcept.tsx        # NUTRIA → SHELL → HOST / ORQUESTADOR
-    │       └── HostConcept.module.css
+    │       ├── ShellLayout.tsx          # navbar + contenido + footer
+    │       └── ShellLayout.module.css
     │
     ├── config/
-    │   └── architecture.ts      # identidad del Shell y items de navegación
+    │   └── architecture.ts      # identidad, secciones, arquitectura, dominios y roadmap
     │
     └── styles/
-        ├── globals.css          # base y reset
+        ├── globals.css          # base, reset y desplazamiento suave
         └── tokens.css           # tokens visuales de NUTRIA
 ```
 
@@ -553,67 +564,79 @@ pnpm typecheck   # TypeScript (tsc --noEmit)
 
 ---
 
-## 15. Navegación del Shell
+## 15. Página principal y navegación
 
-La navegación principal pertenece al **Shell** y se implementó en HU-04. Vive
-en `src/components/navigation/ShellHeader.tsx` y se monta desde
-`src/app/layout.tsx`, de modo que todo el contenido de la aplicación queda
-dentro del chrome del Host.
+La ruta `/` muestra la página principal de NUTRIA, que pertenece al
+**SHELL-NUTRIA (HOST / ORQUESTADOR)**. Se implementó en HU-05 y se compone en
+`src/app/page.tsx` a partir de los componentes de `src/components/landing/`.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ N NUTRIA          Inicio          Afiliados (pend.) │
-└─────────────────────────────────────────────────────┘
+Shell-Nutria
+│
+├── Navbar          →  Qué es · Arquitectura · Dominios · Roadmap · Iniciar sesión
+├── Hero            →  presentación de NUTRIA
+├── ¿Qué es?        →  un taller, no un producto
+├── Arquitectura    →  NUTRIA → nutria-shell (HOST) → nutria-mfe-afiliados (REMOTE)
+├── Dominios        →  Afiliados, Aportes, Empresas, Historial Laboral, Pensiones
+├── Roadmap         →  etapas 01 a 05 con su estado
+└── Footer          →  identidad y secciones
 ```
 
 Características:
 
-- Los items se declaran en `src/config/architecture.ts` (`NAV_ITEMS`).
-- El item activo se detecta con `usePathname()` y se marca con
-  `aria-current="page"` más un estilo propio.
-- Se usa `next/link` para la navegación, sin recargar la aplicación y sin
-  librerías de routing adicionales.
-- En móvil (≤ 860px) la navegación se colapsa en un botón de menú sencillo.
+- El navbar vive en `src/components/navigation/Navbar.tsx` y se monta desde
+  `ShellLayout`, igual que el footer: ambos son chrome del Shell.
+- Los enlaces son anclas a secciones de la misma página
+  (`#que-es`, `#arquitectura`, `#dominios`, `#roadmap`) y se declaran en
+  `src/config/architecture.ts` (`SECTION_LINKS`).
+- `globals.css` define `scroll-behavior: smooth` y `scroll-padding-top` para
+  que las anclas no queden ocultas bajo el navbar; se desactiva con
+  `prefers-reduced-motion`.
+- En móvil (≤ 900px) el navbar se colapsa en un botón de menú y el roadmap
+  pasa de fila a columna.
+- **"Iniciar sesión" es solo visual**: no hay login, sesión, roles ni
+  autorización. El botón está marcado con `aria-disabled="true"`.
 
 ### Rutas
 
-| Ruta      | Contenido                        | Estado         |
-| --------- | -------------------------------- | -------------- |
-| `/`       | Pantalla de identidad del Shell  | Implementada   |
-| `/afiliados` | Punto de acceso al MFE Afiliados | **No creada** |
+| Ruta | Contenido                        | Estado       |
+| ---- | -------------------------------- | ------------ |
+| `/`  | Página principal del Shell       | Implementada |
 
-`Afiliados` aparece en la navegación como item **pendiente**, sin enlace: el
-repositorio `nutria-mfe-afiliados` todavía no existe y no se simuló ningún
-Remote. Cuando exista, se declarará su ruta y se habilitará el enlace.
+No existe ninguna otra ruta. Los dominios son tarjetas informativas: no
+enlazan a rutas inexistentes, no importan código de otros repositorios y no
+simulan Remotes.
 
 ---
 
 ## 16. Estado actual
 
-El proyecto se encuentra en la historia de usuario **HU-04 — Navegación del
-Shell**. La aplicación compila y la navegación principal funciona.
+El proyecto se encuentra en la historia de usuario **HU-05 — Página principal
+del Shell**. La aplicación compila y la página principal es completa.
 
 Implementado:
 
 - Aplicación Next.js 15 con TypeScript y pnpm.
-- Layout raíz y pantalla base del Shell.
-- Identidad visual: `ShellIdentity` y `HostConcept` (HU-03).
-- Navegación principal del Shell con item activo y menú móvil (HU-04).
-- Tokens CSS y estilos basados en `NUTRIA_concepto_visual.html`.
+- Layout raíz, navbar y footer del Shell.
+- Identidad visual de NUTRIA basada en `NUTRIA_concepto_visual.html`
+  (HU-03), con tokens en `src/styles/tokens.css`.
+- Navegación por anclas y comportamiento responsive (HU-04 → HU-05).
+- Página principal con Hero, ¿Qué es?, Arquitectura, Dominios y Roadmap
+  (HU-05).
 - Preparación técnica de Module Federation en `next.config.ts`.
 
-Pendiente:
+Planeado / futuro:
 
 - [x] Navegación del Shell
-- [ ] Dashboard
-- [ ] Autenticación, autorización y sesión
-- [ ] Composición real de Microfrontends
-- [ ] Crear `nutria-mfe-afiliados` como repositorio independiente
-- [ ] Registrar el primer Remote en el Host
-- [ ] Crear `nutria-design-system`
-- [ ] Incorporar los demás Microfrontends
+- [x] Página principal / Dashboard del Shell
+- [ ] `nutria-mfe-afiliados` como repositorio independiente
+- [ ] Registrar el primer Remote en el Host y exponer un módulo
+- [ ] `nutria-design-system`
+- [ ] `nutria-mfe-aportes`, `nutria-mfe-empresas`,
+      `nutria-mfe-historial-laboral` y `nutria-mfe-pensiones`
+- [ ] Autenticación, autorización, sesión y control de acceso
 - [ ] Integrar APIs del backend
 
-> En esta etapa **no** hay dashboard, autenticación, autorización, sesión ni
-> Remotes implementados. El item `Afiliados` es solo un punto de navegación
-> reservado: no existe ninguna implementación local del MFE.
+> En esta etapa **no** hay Remotes implementados, ni autenticación, ni
+> autorización, ni sesión. Los dominios y las etapas del roadmap se muestran
+> como información del Shell; ningún Microfrontend está conectado.

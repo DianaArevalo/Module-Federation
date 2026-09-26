@@ -1,0 +1,137 @@
+.flow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.node {
+  padding: 16px 20px;
+  background: var(--color-paper-raised);
+  border: 1px solid var(--color-line);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.nodePlanned {
+  border-style: dashed;
+  border-left-style: solid;
+  border-left-color: var(--color-amber);
+  background: var(--color-paper-raised);
+}
+
+.nodeHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.nodeName {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--color-ink);
+}
+
+.role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+}
+
+.rolePlanned {
+  color: var(--color-amber);
+  background: var(--color-amber-soft);
+}
+
+.nodeNote {
+  margin: 8px 0 0;
+  font-size: var(--font-size-small);
+  color: var(--color-ink-soft);
+}
+
+.connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.connectorLine {
+  width: 1px;
+  height: 22px;
+  background: var(--color-line);
+}
+
+.connectorPending .connectorLine {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--color-line) 0 4px,
+    transparent 4px 9px
+  );
+}
+
+.connectorLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.concepts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.concept {
+  min-width: 0;
+  padding: 16px 18px;
+  background: var(--color-paper-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+}
+
+.conceptTerm {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.conceptDefinition {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  display: flex;
+  gap: 10px;
+  font-size: var(--font-size-small);
+  color: var(--color-ink-soft);
+}
+
+.note::before {
+  content: "—";
+  flex: none;
+  color: var(--color-ink-soft);
+}

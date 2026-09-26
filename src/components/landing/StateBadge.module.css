@@ -1,0 +1,22 @@
+.badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+
+.done {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.planned {
+  color: var(--color-amber);
+  background: var(--color-amber-soft);
+}

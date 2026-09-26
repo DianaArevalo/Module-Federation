@@ -1,0 +1,120 @@
+.hero {
+  padding: 44px 0 8px;
+  scroll-margin-top: 78px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 4px 12px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.tagline {
+  margin: 12px 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+}
+
+.lead {
+  margin: 18px 0 0;
+  max-width: 60ch;
+  font-size: 16px;
+  color: var(--color-ink-soft);
+}
+
+.summary {
+  margin: 12px 0 0;
+  max-width: 60ch;
+  font-size: var(--font-size-body);
+  color: var(--color-ink-soft);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 4px 11px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-raised);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-micro);
+  color: var(--color-ink-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 26px 0 0;
+}
+
+.action {
+  display: inline-block;
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.actionPrimary {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.actionPrimary:hover {
+  background: var(--color-accent-strong);
+}
+
+.actionOutline {
+  border-color: var(--color-line);
+  color: var(--color-ink);
+}
+
+.actionOutline:hover {
+  border-color: var(--color-ink-soft);
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding-top: 30px;
+  }
+
+  .title {
+    font-size: 38px;
+  }
+
+  .lead {
+    font-size: 15px;
+  }
+}
