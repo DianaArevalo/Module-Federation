@@ -32,9 +32,10 @@ nutria-mfe-afiliados
 `nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
 todavía no se crean y no se documentan como implementados.
 
-> Este repositorio está en la etapa **HU-03 — Identidad visual del Shell**: la
-> aplicación ya tiene su lenguaje visual propio, pero todavía **no** hay
-> navegación, autenticación, autorización, sesión ni Microfrontends conectados.
+> Este repositorio está en la etapa **HU-04 — Navegación del Shell**: la
+> aplicación tiene su identidad visual y su navegación principal, pero todavía
+> **no** hay dashboard, autenticación, autorización, sesión ni Microfrontends
+> conectados.
 
 ---
 
@@ -134,7 +135,15 @@ El Shell es responsable de integrar y presentar los diferentes Microfrontends.
 
 ### Navegación
 
-El Shell será responsable de la navegación principal de la aplicación.
+El Shell es responsable de la navegación principal de la aplicación. La
+navegación ya está implementada (ver sección 15):
+
+```
+NUTRIA  ·  Inicio  ·  Afiliados (pendiente)
+```
+
+Los Microfrontends **no** controlan la navegación global. Más adelante podrán
+tener navegación interna propia, pero siempre dentro del Shell.
 
 ### Composición
 
@@ -469,10 +478,13 @@ nutria-shell/
 └── src/
     ├── app/
     │   ├── favicon.ico
-    │   ├── layout.tsx           # layout raíz: fuentes y estilos globales
-    │   └── page.tsx             # pantalla base del Shell
+    │   ├── layout.tsx           # layout raíz: fuentes, estilos y chrome del Shell
+    │   └── page.tsx             # ruta / (Inicio)
     │
     ├── components/
+    │   ├── navigation/
+    │   │   ├── ShellHeader.tsx        # navegación principal del Shell
+    │   │   └── ShellHeader.module.css
     │   └── shell/
     │       ├── ShellLayout.tsx        # contenedor base del Shell
     │       ├── ShellLayout.module.css
@@ -482,7 +494,7 @@ nutria-shell/
     │       └── HostConcept.module.css
     │
     ├── config/
-    │   └── architecture.ts      # datos de identidad del Shell
+    │   └── architecture.ts      # identidad del Shell y items de navegación
     │
     └── styles/
         ├── globals.css          # base y reset
@@ -492,7 +504,7 @@ nutria-shell/
 Separación de responsabilidades:
 
 | Carpeta         | Contenido                                            |
-| ---------------- | ---------------------------------------------------- |
+| --------------- | ---------------------------------------------------- |
 | `src/app`       | Páginas y layout de Next.js (App Router)             |
 | `src/components`| Componentes reutilizables del Shell                   |
 | `src/styles`    | Estilos CSS globales, tokens y CSS Modules            |
@@ -541,25 +553,59 @@ pnpm typecheck   # TypeScript (tsc --noEmit)
 
 ---
 
-## 15. Estado actual
+## 15. Navegación del Shell
 
-El proyecto se encuentra en la historia de usuario **HU-03 — Identidad visual
-del Shell**. La aplicación base compila y la pantalla inicial ya tiene la
-identidad visual de NUTRIA.
+La navegación principal pertenece al **Shell** y se implementó en HU-04. Vive
+en `src/components/navigation/ShellHeader.tsx` y se monta desde
+`src/app/layout.tsx`, de modo que todo el contenido de la aplicación queda
+dentro del chrome del Host.
+
+```
+┌─────────────────────────────────────────────────────┐
+│ N NUTRIA          Inicio          Afiliados (pend.) │
+└─────────────────────────────────────────────────────┘
+```
+
+Características:
+
+- Los items se declaran en `src/config/architecture.ts` (`NAV_ITEMS`).
+- El item activo se detecta con `usePathname()` y se marca con
+  `aria-current="page"` más un estilo propio.
+- Se usa `next/link` para la navegación, sin recargar la aplicación y sin
+  librerías de routing adicionales.
+- En móvil (≤ 860px) la navegación se colapsa en un botón de menú sencillo.
+
+### Rutas
+
+| Ruta      | Contenido                        | Estado         |
+| --------- | -------------------------------- | -------------- |
+| `/`       | Pantalla de identidad del Shell  | Implementada   |
+| `/afiliados` | Punto de acceso al MFE Afiliados | **No creada** |
+
+`Afiliados` aparece en la navegación como item **pendiente**, sin enlace: el
+repositorio `nutria-mfe-afiliados` todavía no existe y no se simuló ningún
+Remote. Cuando exista, se declarará su ruta y se habilitará el enlace.
+
+---
+
+## 16. Estado actual
+
+El proyecto se encuentra en la historia de usuario **HU-04 — Navegación del
+Shell**. La aplicación compila y la navegación principal funciona.
 
 Implementado:
 
 - Aplicación Next.js 15 con TypeScript y pnpm.
 - Layout raíz y pantalla base del Shell.
-- Contenedor base del Shell (`ShellLayout`).
-- Identidad visual: `ShellIdentity` (NUTRIA · SHELL-NUTRIA · HOST / ORQUESTADOR)
-  y `HostConcept` (relación conceptual NUTRIA → SHELL-NUTRIA → HOST).
+- Identidad visual: `ShellIdentity` y `HostConcept` (HU-03).
+- Navegación principal del Shell con item activo y menú móvil (HU-04).
 - Tokens CSS y estilos basados en `NUTRIA_concepto_visual.html`.
 - Preparación técnica de Module Federation en `next.config.ts`.
 
 Pendiente:
 
-- [ ] Navegación del Shell
+- [x] Navegación del Shell
+- [ ] Dashboard
 - [ ] Autenticación, autorización y sesión
 - [ ] Composición real de Microfrontends
 - [ ] Crear `nutria-mfe-afiliados` como repositorio independiente
@@ -568,6 +614,6 @@ Pendiente:
 - [ ] Incorporar los demás Microfrontends
 - [ ] Integrar APIs del backend
 
-> En esta etapa **no** hay navegación, dashboard, autenticación, autorización,
-> sesión ni Remotes implementados. La pantalla es puramente identificativa y
-> no incluye acciones ni enlaces.
+> En esta etapa **no** hay dashboard, autenticación, autorización, sesión ni
+> Remotes implementados. El item `Afiliados` es solo un punto de navegación
+> reservado: no existe ninguna implementación local del MFE.

@@ -1,9 +1,15 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 .content {
+  flex: 1;
   display: grid;
   align-content: center;
   width: 100%;
   max-width: 920px;
-  min-height: 100dvh;
   margin: 0;
   padding: 32px;
 }

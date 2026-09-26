@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { ShellLayout } from "@/components/shell/ShellLayout";
 import "@/styles/globals.css";
 
 const fraunces = Fraunces({
@@ -35,7 +36,7 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable}`}
       >
-        {children}
+        <ShellLayout>{children}</ShellLayout>
       </body>
     </html>
   );
