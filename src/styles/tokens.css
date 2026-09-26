@@ -1,0 +1,42 @@
+/**
+ * Tokens de diseño del Shell.
+ *
+ * Valores tomados de la referencia visual `NUTRIA_concepto_visual.html`.
+ * Este archivo es la base local: más adelante se sustituirá por los tokens
+ * del Design System `nutria-design-system`, que es un repositorio aparte.
+ */
+
+:root {
+  --color-ink: #1b2430;
+  --color-ink-soft: #5b6470;
+  --color-paper: #f3f4ec;
+  --color-paper-raised: #ffffff;
+  --color-line: #dddfcf;
+  --color-accent: #0f5c52;
+  --color-accent-strong: #0c4b43;
+  --color-accent-soft: #e4eeea;
+  --color-amber: #b4791f;
+  --color-amber-soft: #fbf0de;
+  --color-success: #2f7a4f;
+  --color-success-soft: #e7f3ec;
+  --color-stripe: #eef2e8;
+  --color-sidebar-text: #c3cbc6;
+  --color-sidebar-muted: #8c9691;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-plex-sans), "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), "Courier New", monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 22px;
+  --space-6: 32px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 0 rgba(27, 36, 48, 0.04);
+}

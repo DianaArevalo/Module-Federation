@@ -32,8 +32,9 @@ nutria-mfe-afiliados
 `nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
 todavía no se crean y no se documentan como implementados.
 
-> Este repositorio es nuevo y se encuentra en estado inicial. No existe todavía
-> código de aplicación ni configuración técnica.
+> Este repositorio está en la etapa **HU-02 — Esqueleto del Host**: la
+> aplicación base ya existe y compila, pero todavía **no** hay navegación,
+> autenticación, autorización, sesión ni Microfrontends conectados.
 
 ---
 
@@ -100,19 +101,24 @@ Puntos clave:
 
 ## 4. Tecnología
 
-Tecnologías definidas para el Shell:
+Tecnologías definidas para el Shell y **versiones realmente instaladas**:
 
-- **Next.js 15**
-- **React**
-- **TypeScript**
-- **Module Federation**
-- **Webpack** — tecnología utilizada para la integración de Module Federation.
-- **pnpm** — gestor de paquetes.
-- **CSS**
+| Tecnología                  | Versión    |
+| --------------------------- | ---------- |
+| Next.js                     | 15.5.26    |
+| React                       | 19.1.0     |
+| TypeScript                  | 5.9.3      |
+| Webpack                     | 5.111.1    |
+| Module Federation           | 2.9.1      |
+| pnpm                        | 12.4.2     |
+| CSS                         | nativo     |
+| ESLint                      | 9.39.5     |
 
-> Estas tecnologías están **definidas para el taller**, pero la configuración
-> real (dependencias instaladas, scripts, configuración del bundler) **aún no
-> existe**. Este documento no incluye esa configuración.
+Module Federation se integra con el plugin `@module-federation/enhanced` sobre
+el Webpack que ya usa Next.js 15. No se usa Turbopack.
+
+> `webpack` se declara como dependencia de desarrollo porque Next.js empaqueta su
+> propia copia de Webpack y el plugin necesita resolverlo como paquete.
 
 ---
 
@@ -418,31 +424,128 @@ repositorio:
 ```
 
 Dentro de este repositorio (`nutria-shell`) **no** se crean carpetas para los
-demás MFEs. Su contenido inicial es:
-
-```
-nutria-shell/
-│
-├── NUTRIA_concepto_visual.html
-├── .gitignore
-└── README.md
-```
+demás MFEs.
 
 ---
 
-## 13. Estado actual
+## 13. Estructura real del proyecto
 
-El proyecto se encuentra en **etapa inicial**. En este repositorio **aún no
-existe** código de aplicación, configuración técnica, dependencias instaladas
-ni Microfrontends conectados.
+Estructura actual del repositorio (esqueleto del Host):
 
-Checklist:
+```text
+nutria-shell/
+│
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── next.config.ts
+├── tsconfig.json
+├── next-env.d.ts
+├── eslint.config.mjs
+├── .gitignore
+├── NUTRIA_concepto_visual.html
+│
+├── public/
+│
+└── src/
+    ├── app/
+    │   ├── favicon.ico
+    │   ├── layout.tsx           # layout raíz: fuentes y estilos globales
+    │   └── page.tsx             # página inicial
+    │
+    ├── components/
+    │   ├── home/
+    │   │   ├── IdentityCard.tsx          # identifica el Shell como HOST
+    │   │   └── IdentityCard.module.css
+    │   └── shell/
+    │       ├── ShellLayout.tsx           # contenedor base del Shell
+    │       └── ShellLayout.module.css
+    │
+    ├── config/
+    │   └── architecture.ts      # datos de identidad del Shell
+    │
+    └── styles/
+        ├── globals.css          # base y reset
+        └── tokens.css           # tokens visuales de NUTRIA
+```
 
-- [x] Crear repositorio
-- [ ] Crear `nutria-shell` como Host / orquestador
-- [ ] Configurar Module Federation
-- [ ] Conectar `nutria-shell` → `nutria-mfe-afiliados`
+Separación de responsabilidades:
+
+| Carpeta         | Contenido                                            |
+| --------------- | ---------------------------------------------------- |
+| `src/app`       | Páginas y layout de Next.js (App Router)             |
+| `src/components`| Componentes reutilizables del Shell                   |
+| `src/styles`    | Estilos CSS globales y tokens                         |
+| `src/config`    | Datos de configuración del Shell                     |
+
+---
+
+## 14. Instalación y ejecución
+
+### Requisitos
+
+- Node.js 22
+- pnpm 12
+
+### Instalación
+
+```bash
+pnpm install
+```
+
+### Desarrollo
+
+```bash
+pnpm dev
+```
+
+El Shell queda disponible en `http://localhost:3000` (puerto por defecto de
+Next.js).
+
+### Build de producción
+
+```bash
+pnpm build
+pnpm start
+```
+
+### Otros comandos
+
+```bash
+pnpm lint        # ESLint
+pnpm typecheck   # TypeScript (tsc --noEmit)
+```
+
+> Los scripts de `dev` y `build` **no** usan Turbopack. Module Federation requiere
+> el bundler Webpack, que es el bundler por defecto de Next.js 15.
+
+---
+
+## 15. Estado actual
+
+El proyecto se encuentra en la historia de usuario **HU-02 — Esqueleto del
+Host**. Ya existe la aplicación base del Shell y compila correctamente.
+
+Implementado:
+
+- Aplicación Next.js 15 con TypeScript y pnpm.
+- Layout raíz y página inicial.
+- Contenedor base del Shell (`ShellLayout`).
+- Estilos CSS y tokens basados en `NUTRIA_concepto_visual.html`.
+- Preparación técnica de Module Federation en `next.config.ts`.
+
+Pendiente:
+
+- [ ] Navegación del Shell
+- [ ] Autenticación, autorización y sesión
+- [ ] Composición real de Microfrontends
+- [ ] Crear `nutria-mfe-afiliados` como repositorio independiente
+- [ ] Registrar el primer Remote en el Host
 - [ ] Crear `nutria-design-system`
-- [ ] Implementar autenticación / autorización / sesión
 - [ ] Incorporar los demás Microfrontends
 - [ ] Integrar APIs del backend
+
+> En esta etapa **no** hay navegación, autenticación, autorización, sesión ni
+> Remotes implementados. La tarjeta de la página inicial es puramente
+> identificativa.
