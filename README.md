@@ -32,10 +32,10 @@ nutria-mfe-afiliados
 `nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
 todavía no se crean y no se documentan como implementados.
 
-> Este repositorio está en la etapa **HU-05 — Página principal del Shell**: la
-> aplicación explica el taller, su arquitectura, sus dominios y su roadmap, pero
-> todavía **no** hay autenticación, autorización, sesión ni Microfrontends
-> conectados.
+> Este repositorio está en la etapa **HU-09 — `nutria-shell` como Host de Module
+> Federation**: el Shell ya tiene registrado el Remote `nutria_mfe_afiliados`,
+> pero todavía **no** consume su módulo `./Afiliados`. No hay autenticación,
+> autorización, sesión ni Microfrontends renderizados.
 
 ---
 
@@ -109,17 +109,29 @@ Tecnologías definidas para el Shell y **versiones realmente instaladas**:
 | Next.js                     | 15.5.26    |
 | React                       | 19.1.0     |
 | TypeScript                  | 5.9.3      |
-| Webpack                     | 5.111.1    |
-| Module Federation           | 2.9.1      |
+| Webpack                     | 5.105.0    |
+| Module Federation           | `@module-federation/nextjs-mf` 8.8.76 |
 | pnpm                        | 12.4.2     |
 | CSS                         | nativo     |
 | ESLint                      | 9.39.5     |
+| Router                      | Pages Router |
 
-Module Federation se integra con el plugin `@module-federation/enhanced` sobre
-el Webpack que ya usa Next.js 15. No se usa Turbopack.
+Module Federation se integra con `@module-federation/nextjs-mf` y su
+`NextFederationPlugin`, sobre el Webpack que ya usa Next.js 15. No se usa
+Turbopack.
 
-> `webpack` se declara como dependencia de desarrollo porque Next.js empaqueta su
-> propia copia de Webpack y el plugin necesita resolverlo como paquete.
+> El Shell usa el **Pages Router** (`src/pages`) porque `@module-federation/nextjs-mf`
+> solo soporta el directorio `pages`. El Remote `nutria-mfe-afiliados` usa el
+> mismo enfoque.
+
+> `webpack` se declara como dependencia de desarrollo (fijado en `5.105.0`, igual
+> que el Remote) porque Next.js empaqueta su propia copia y el plugin necesita
+> resolverlo como paquete. Además, los scripts de `dev`, `build` y `start` se
+> ejecutan con `cross-env NEXT_PRIVATE_LOCAL_WEBPACK=true`, indicando a Next.js
+> que use esa copia local de Webpack.
+
+> `pnpm-workspace.yaml` fija `enhanced-resolve` en `5.20.1`: esa es la última
+> versión compatible con Next.js 15.5.26 cuando se usa el Webpack local.
 
 ---
 
@@ -224,9 +236,21 @@ consume.
 Punto de entrada que utiliza Module Federation para **descubrir y cargar** los
 módulos expuestos por un Remote.
 
-> Estos son los conceptos que se usarán en el taller. No se documentan aquí
-> nombres de archivos, URLs, puertos ni configuraciones concretas, porque
-> todavía no están implementados.
+### Configuración real del Host (HU-09)
+
+El Host ya tiene registrado el Remote en `next.config.ts` mediante
+`NextFederationPlugin`:
+
+| Elemento          | Valor                                                          |
+| ----------------- | -------------------------------------------------------------- |
+| Host (name)       | `nutria_shell`                                                 |
+| Remote registrado | `nutria_mfe_afiliados`                                         |
+| Remote Entry      | `http://localhost:3001/_next/static/chunks/remoteEntry.js`     |
+
+El Host **solo conoce la ubicación** del Remote Entry. Todavía **no consume** el
+módulo `./Afiliados`: la composición se implementa en HU-10. El Remote pertenece
+al repositorio independiente `nutria-mfe-afiliados` y **no** se modificó para
+esta HU.
 
 ---
 
@@ -372,6 +396,10 @@ Afilados**.
 Esta integración será el **primer ejercicio práctico** del taller: el momento en
 que se demuestra que la arquitectura Host/Remote funciona.
 
+En **HU-09** el Shell ya quedó configurado como Host y registra el Remote
+`nutria_mfe_afiliados` (sabe dónde está su Remote Entry). El **consumo** del
+módulo `./Afiliados` corresponde a **HU-10**.
+
 ---
 
 ## 11. Roadmap
@@ -418,11 +446,11 @@ Posteriormente implementar en el Shell:
 - navegación
 - control de acceso
 
-> **Estado de las etapas:** la etapa 1 está completada en el Shell. Las etapas
-> 2 a 5 están planificadas y todavía no se crean. La integración
-> HOST → Remote mediante Module Federation es el primer ejercicio práctico y
-> corresponde a la etapa 2. La navegación del Shell ya está implementada; el
-> resto de las capacidades transversales sigue pendiente.
+> **Estado de las etapas:** la etapa 1 está completada en el Shell. De la etapa
+> 2, `nutria-mfe-afiliados` ya existe como Remote y el Shell ya está configurado
+> como Host (HU-09); falta consumir el módulo `./Afiliados` (HU-10). Las etapas
+> 3 a 5 están planificadas y todavía no se crean. La navegación del Shell ya está
+> implementada; el resto de las capacidades transversales sigue pendiente.
 
 ---
 
@@ -478,12 +506,13 @@ nutria-shell/
 ├── NUTRIA_concepto_visual.html
 │
 ├── public/
+│   └── favicon.ico
 │
 └── src/
-    ├── app/
-    │   ├── favicon.ico
-    │   ├── layout.tsx           # layout raíz: fuentes, estilos y chrome del Shell
-    │   └── page.tsx             # ruta / (página principal del Shell)
+    ├── pages/
+    │   ├── _app.tsx             # estilos globales, <Head> y chrome del Shell
+    │   ├── _document.tsx        # documento HTML y tipografías
+    │   └── index.tsx            # ruta / (página principal del Shell)
     │
     ├── components/
     │   ├── landing/
@@ -509,6 +538,7 @@ nutria-shell/
     │
     └── styles/
         ├── globals.css          # base, reset y desplazamiento suave
+        ├── fonts.ts             # tipografías de NUTRIA (next/font)
         └── tokens.css           # tokens visuales de NUTRIA
 ```
 
@@ -516,7 +546,7 @@ Separación de responsabilidades:
 
 | Carpeta         | Contenido                                            |
 | --------------- | ---------------------------------------------------- |
-| `src/app`       | Páginas y layout de Next.js (App Router)             |
+| `src/pages`     | Páginas y documento de Next.js (Pages Router)        |
 | `src/components`| Componentes reutilizables del Shell                   |
 | `src/styles`    | Estilos CSS globales, tokens y CSS Modules            |
 | `src/config`    | Datos de configuración del Shell                     |
@@ -561,6 +591,9 @@ pnpm typecheck   # TypeScript (tsc --noEmit)
 
 > Los scripts de `dev` y `build` **no** usan Turbopack. Module Federation requiere
 > el bundler Webpack, que es el bundler por defecto de Next.js 15.
+>
+> Todos los scripts se ejecutan con `cross-env NEXT_PRIVATE_LOCAL_WEBPACK=true`
+> (igual que el Remote) para que Next.js use la copia local de `webpack`.
 
 ---
 
@@ -568,7 +601,7 @@ pnpm typecheck   # TypeScript (tsc --noEmit)
 
 La ruta `/` muestra la página principal de NUTRIA, que pertenece al
 **SHELL-NUTRIA (HOST / ORQUESTADOR)**. Se implementó en HU-05 y se compone en
-`src/app/page.tsx` a partir de los componentes de `src/components/landing/`.
+`src/pages/index.tsx` a partir de los componentes de `src/components/landing/`.
 
 ```
 Shell-Nutria
@@ -611,32 +644,56 @@ simulan Remotes.
 
 ## 16. Estado actual
 
-El proyecto se encuentra en la historia de usuario **HU-05 — Página principal
-del Shell**. La aplicación compila y la página principal es completa.
+El proyecto se encuentra en la historia de usuario **HU-09 — Configurar
+`nutria-shell` como Host de Module Federation**. La aplicación compila, la
+página principal funciona y el Host ya tiene registrado el Remote.
 
 Implementado:
 
-- Aplicación Next.js 15 con TypeScript y pnpm.
-- Layout raíz, navbar y footer del Shell.
+- Aplicación Next.js 15 con TypeScript, Pages Router y pnpm.
+- Navbar, footer y layout del Shell (`_app.tsx`, `_document.tsx`) y página
+  principal.
 - Identidad visual de NUTRIA basada en `NUTRIA_concepto_visual.html`
   (HU-03), con tokens en `src/styles/tokens.css`.
 - Navegación por anclas y comportamiento responsive (HU-04 → HU-05).
 - Página principal con Hero, ¿Qué es?, Arquitectura, Dominios y Roadmap
   (HU-05).
-- Preparación técnica de Module Federation en `next.config.ts`.
+- **Host de Module Federation (HU-09):** `NextFederationPlugin` configurado en
+  `next.config.ts` con el nombre `nutria_shell` y el Remote
+  `nutria_mfe_afiliados` registrado.
+
+### HU-09 — Host de Module Federation
+
+- El Shell funciona como **Host** con `@module-federation/nextjs-mf`
+  (`NextFederationPlugin`).
+- El Host se llama **`nutria_shell`**.
+- El Remote **`nutria_mfe_afiliados`** está registrado en `remotes`.
+- La URL del Remote Entry de desarrollo es
+  **`http://localhost:3001/_next/static/chunks/remoteEntry.js`** y responde
+  `200` cuando el Remote está ejecutándose.
+- El Remote pertenece al repositorio independiente **`nutria-mfe-afiliados`**
+  y **no** se modificó para esta HU.
+- El Host **todavía NO consume** el módulo `./Afiliados`. No hay import, ni
+  `dynamic import`, ni `React.lazy`, ni ruta `/afiliados`, ni navegación hacia
+  Afiliados. Tampoco hay comunicación Host ↔ Remote.
+- El consumo del módulo `./Afiliados` se implementará en **HU-10**.
+
+> El Host conoce *dónde* encontrar el Remote, pero la integración
+> Host → Remote a nivel de módulo todavía no está activa.
 
 Planeado / futuro:
 
 - [x] Navegación del Shell
 - [x] Página principal / Dashboard del Shell
-- [ ] `nutria-mfe-afiliados` como repositorio independiente
-- [ ] Registrar el primer Remote en el Host y exponer un módulo
+- [x] `nutria-mfe-afiliados` como repositorio independiente (HU-06 → HU-08)
+- [x] Configurar `nutria-shell` como Host de Module Federation (HU-09)
+- [ ] Consumir el módulo `./Afiliados` desde el Host (HU-10)
 - [ ] `nutria-design-system`
 - [ ] `nutria-mfe-aportes`, `nutria-mfe-empresas`,
       `nutria-mfe-historial-laboral` y `nutria-mfe-pensiones`
 - [ ] Autenticación, autorización, sesión y control de acceso
 - [ ] Integrar APIs del backend
 
-> En esta etapa **no** hay Remotes implementados, ni autenticación, ni
-> autorización, ni sesión. Los dominios y las etapas del roadmap se muestran
-> como información del Shell; ningún Microfrontend está conectado.
+> En esta etapa todavía **no** se consume ningún Microfrontend, y no hay
+> autenticación, autorización ni sesión. Los dominios y las etapas del roadmap
+> se muestran como información del Shell.

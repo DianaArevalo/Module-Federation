@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { SECTION_LINKS, SHELL } from "@/config/architecture";
 import styles from "./Navbar.module.css";

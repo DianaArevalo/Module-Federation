@@ -1,34 +1,51 @@
-import { ModuleFederationPlugin } from "@module-federation/enhanced";
+import { NextFederationPlugin } from "@module-federation/nextjs-mf";
 import type { NextConfig } from "next";
 
 /**
- * Nombre del contenedor del Host en Module Federation.
- * Debe coincidir con el nombre usado en `host.remoteType`.
+ * Nombre estable del Host. Es el identificador con el que este contenedor se
+ * registra en Module Federation. Debe mantenerse entre despliegues.
  */
-const HOST_NAME = "nutria-shell";
+const HOST_NAME = "nutria_shell";
 
 /**
- * Microfrontends que este Host consumirá.
+ * Remotes conocidos por el Host.
  *
- * En esta etapa la lista está vacía a propósito: el repositorio
- * `nutria-mfe-afiliados` todavía no existe. El Remote se agregará aquí
- * cuando se cree, y en ese momento también se documentará su URL pública.
+ * `nextjs-mf` resuelve cada valor como `<remoteName>@<remoteEntryUrl>`:
+ * el Host no descarga nada todavia, simplemente registra donde puede encontrar
+ * el `remoteEntry.js` de cada Remote en tiempo de ejecucion.
+ *
+ * - `nutria_mfe_afiliados`: Remote del dominio de Afiliados, publicado en el
+ *   repositorio independiente `nutria-mfe-afiliados` (puerto 3001).
+ * - La URL corresponde al `filename` del Remote (`static/chunks/remoteEntry.js`
+ *   relativo a `.next`), que Next.js sirve en `/_next/static/chunks/remoteEntry.js`.
  */
-const REMOTES: Record<string, string> = {};
+const REMOTES = {
+  nutria_mfe_afiliados:
+    "nutria_mfe_afiliados@http://localhost:3001/_next/static/chunks/remoteEntry.js",
+};
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Se conserva la configuracion de Webpack de Next.js: solo se anade el plugin.
+  // NEXT_PRIVATE_LOCAL_WEBPACK=true se define en los scripts de package.json
+  // (cross-env) porque Next.js debe usar la copia local de `webpack` (devDependency)
+  // en lugar de la que trae compilada, que no expone los internos que necesita MF.
   webpack: (config) => {
-    config.plugins ??= [];
     config.plugins.push(
-      new ModuleFederationPlugin({
+      new NextFederationPlugin({
         name: HOST_NAME,
-        filename: "remoteEntry.js",
+        filename: "static/chunks/remoteEntry.js",
         remotes: REMOTES,
-        exposes: {},
-        shared: {},
-      }),
+        // Esta HU solo registra el Remote. El consumo de `./Afiliados` se hace
+        // en HU-10, por lo que el Host todavia no declara `exposes` ni `shared`.
+        // `shared` no se declara porque NextFederationPlugin ya comparte por
+        // defecto react, react-dom, styled-jsx y los internos de Next.
+        extraOptions: {
+          debug: false,
+        },
+      })
     );
+
     return config;
   },
 };
