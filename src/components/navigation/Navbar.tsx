@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SECTION_LINKS, SHELL } from "@/config/architecture";
+import { ROUTE_LINKS, SECTION_LINKS, SHELL } from "@/config/architecture";
 import styles from "./Navbar.module.css";
 
 /**
@@ -15,11 +15,7 @@ export function Navbar() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <a
-          className={styles.brand}
-          href="#top"
-          onClick={() => setOpen(false)}
-        >
+        <a className={styles.brand} href="#top" onClick={() => setOpen(false)}>
           <span className={styles.brandMark} aria-hidden="true">
             N
           </span>
@@ -55,6 +51,18 @@ export function Navbar() {
                 <a
                   className={styles.item}
                   href={`#${link.id}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+
+            {ROUTE_LINKS.map((link) => (
+              <li key={link.href}>
+                <a
+                  className={styles.item}
+                  href={link.href}
                   onClick={() => setOpen(false)}
                 >
                   {link.label}

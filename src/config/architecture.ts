@@ -38,6 +38,15 @@ export const SECTION_LINKS: SectionLink[] = [
   { id: "roadmap", label: "Roadmap" },
 ];
 
+export interface NavigationLink {
+  label: string;
+  href: string;
+}
+
+export const ROUTE_LINKS: NavigationLink[] = [
+  { label: "Afiliados", href: "/afiliados" },
+];
+
 export type State = "done" | "planned";
 
 export const STATE_LABEL: Record<State, string> = {
