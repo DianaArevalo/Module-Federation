@@ -4,7 +4,7 @@ const AffiliatesModule = dynamic(
   () => import("nutria_mfe_afiliados/Afiliados"),
   {
     ssr: false,
-  }
+  },
 );
 
 export default function AfiliadosPage() {
@@ -12,7 +12,7 @@ export default function AfiliadosPage() {
     <main>
       <h1>Afiliados</h1>
 
-      <AffiliatesModule />
+      <AffiliatesModule title="Afiliados NUTRIA" />
     </main>
   );
 }
