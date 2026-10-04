@@ -17,7 +17,7 @@ Su responsabilidad es actuar como:
 - Responsable de la **composición** de los diferentes Microfrontends.
 - Responsable de las **capacidades transversales** del frontend.
 
-En esta primera etapa del taller solamente se trabaja con dos aplicaciones:
+En esta etapa del taller se trabaja con dos aplicaciones:
 
 ```
 nutria-shell
@@ -32,10 +32,11 @@ nutria-mfe-afiliados
 `nutria-mfe-afiliados` vive en **otro repositorio**. Los demás Microfrontends
 todavía no se crean y no se documentan como implementados.
 
-> Este repositorio está en la etapa **HU-09 — `nutria-shell` como Host de Module
-> Federation**: el Shell ya tiene registrado el Remote `nutria_mfe_afiliados`,
-> pero todavía **no** consume su módulo `./Afiliados`. No hay autenticación,
-> autorización, sesión ni Microfrontends renderizados.
+> Este repositorio ya integra el **MFE de Afiliados** mediante Module Federation.
+> El Shell actúa como **Host**, registra el Remote `nutria_mfe_afiliados`, consume
+> su módulo `./Afiliados` desde la ruta `/afiliados` y le pasa props desde el Host
+> (HU-10 → HU-13). No hay autenticación, autorización, sesión ni otros
+> Microfrontends renderizados aún.
 
 ---
 
@@ -247,10 +248,9 @@ El Host ya tiene registrado el Remote en `next.config.ts` mediante
 | Remote registrado | `nutria_mfe_afiliados`                                         |
 | Remote Entry      | `http://localhost:3001/_next/static/chunks/remoteEntry.js`     |
 
-El Host **solo conoce la ubicación** del Remote Entry. Todavía **no consume** el
-módulo `./Afiliados`: la composición se implementa en HU-10. El Remote pertenece
-al repositorio independiente `nutria-mfe-afiliados` y **no** se modificó para
-esta HU.
+El Host consume dinámicamente el módulo `./Afiliados` (cargado con `ssr: false`)
+desde la ruta `/afiliados` y le pasa props desde el Host (HU-13). El Remote
+pertenece al repositorio independiente `nutria-mfe-afiliados`.
 
 ---
 
@@ -447,10 +447,11 @@ Posteriormente implementar en el Shell:
 - control de acceso
 
 > **Estado de las etapas:** la etapa 1 está completada en el Shell. De la etapa
-> 2, `nutria-mfe-afiliados` ya existe como Remote y el Shell ya está configurado
-> como Host (HU-09); falta consumir el módulo `./Afiliados` (HU-10). Las etapas
-> 3 a 5 están planificadas y todavía no se crean. La navegación del Shell ya está
-> implementada; el resto de las capacidades transversales sigue pendiente.
+> 2, `nutria-mfe-afiliados` ya existe como Remote y el Shell lo consume desde
+> `/afiliados` (HU-10 → HU-13), incluyendo el paso de props desde el Host. Las
+> etapas 3 a 5 están planificadas y todavía no se crean. La navegación del Shell
+> ya está implementada (incluye enlace a "Afiliados"); el resto de las capacidades
+> transversales sigue pendiente.
 
 ---
 
@@ -635,10 +636,10 @@ Características:
 | Ruta | Contenido                        | Estado       |
 | ---- | -------------------------------- | ------------ |
 | `/`  | Página principal del Shell       | Implementada |
+| `/afiliados` | Composición con MFE Afiliados (Module Federation) | Implementada |
 
-No existe ninguna otra ruta. Los dominios son tarjetas informativas: no
-enlazan a rutas inexistentes, no importan código de otros repositorios y no
-simulan Remotes.
+Los dominios son mayormente informativos. El enlace "Afiliados" navega a `/afiliados`
+donde el Shell consume el módulo `./Afiliados` del Remote `nutria_mfe_afiliados`.
 
 ---
 
@@ -658,28 +659,30 @@ Implementado:
 - Navegación por anclas y comportamiento responsive (HU-04 → HU-05).
 - Página principal con Hero, ¿Qué es?, Arquitectura, Dominios y Roadmap
   (HU-05).
-- **Host de Module Federation (HU-09):** `NextFederationPlugin` configurado en
+- **Host de Module Federation:** `NextFederationPlugin` configurado en
   `next.config.ts` con el nombre `nutria_shell` y el Remote
-  `nutria_mfe_afiliados` registrado.
+  `nutria_mfe_afiliados` registrado (HU-09).
+- **Consumo del Remote Afiliados:** ruta `/afiliados` que carga dinámicamente
+  el módulo `./Afiliados` del Remote `nutria_mfe_afiliados` con `ssr: false`
+  (HU-10). Se tipa la federación en `src/types/module-federation.d.ts`.
+- **Navegación integrada:** el navbar incluye enlace "Afiliados" a `/afiliados`
+  (HU-11).
+- **Paso de props desde Host:** el Host pasa `title="Afiliados NUTRIA"` al
+  módulo federado (HU-13). El Remote acepta y renderiza dicho `title`.
 
-### HU-09 — Host de Module Federation
+### Integración Module Federation
 
 - El Shell funciona como **Host** con `@module-federation/nextjs-mf`
   (`NextFederationPlugin`).
-- El Host se llama **`nutria_shell`**.
-- El Remote **`nutria_mfe_afiliados`** está registrado en `remotes`.
-- La URL del Remote Entry de desarrollo es
-  **`http://localhost:3001/_next/static/chunks/remoteEntry.js`** y responde
-  `200` cuando el Remote está ejecutándose.
-- El Remote pertenece al repositorio independiente **`nutria-mfe-afiliados`**
-  y **no** se modificó para esta HU.
-- El Host **todavía NO consume** el módulo `./Afiliados`. No hay import, ni
-  `dynamic import`, ni `React.lazy`, ni ruta `/afiliados`, ni navegación hacia
-  Afiliados. Tampoco hay comunicación Host ↔ Remote.
-- El consumo del módulo `./Afiliados` se implementará en **HU-10**.
-
-> El Host conoce *dónde* encontrar el Remote, pero la integración
-> Host → Remote a nivel de módulo todavía no está activa.
+- Host: **`nutria_shell`**.
+- Remote registrado: **`nutria_mfe_afiliados`** con Remote Entry
+  **`http://localhost:3001/_next/static/chunks/remoteEntry.js`** (desarrollo).
+- Ruta: **`/afiliados`** — consume `nutria_mfe_afiliados/Afiliados` vía `dynamic()`
+  con `ssr: false`.
+- Contrato tipado: `src/types/module-federation.d.ts` declara `nutria_mfe_afiliados/Afiliados`
+  como `ComponentType<{ title: string }>` (acepta prop `title` enviada por el Host).
+- Propagación de props: Host envía `title="Afiliados NUTRIA"` al módulo remoto
+  (HU-13).
 
 Planeado / futuro:
 
@@ -687,13 +690,16 @@ Planeado / futuro:
 - [x] Página principal / Dashboard del Shell
 - [x] `nutria-mfe-afiliados` como repositorio independiente (HU-06 → HU-08)
 - [x] Configurar `nutria-shell` como Host de Module Federation (HU-09)
-- [ ] Consumir el módulo `./Afiliados` desde el Host (HU-10)
+- [x] Consumir el módulo `./Afiliados` desde el Host (HU-10)
+- [x] Integrar ruta `/afiliados` en la navegación (HU-11)
+- [x] Pasar props desde el Host al módulo de Afiliados (HU-13)
 - [ ] `nutria-design-system`
 - [ ] `nutria-mfe-aportes`, `nutria-mfe-empresas`,
       `nutria-mfe-historial-laboral` y `nutria-mfe-pensiones`
 - [ ] Autenticación, autorización, sesión y control de acceso
 - [ ] Integrar APIs del backend
 
-> En esta etapa todavía **no** se consume ningún Microfrontend, y no hay
-> autenticación, autorización ni sesión. Los dominios y las etapas del roadmap
-> se muestran como información del Shell.
+> En esta etapa el Shell ya consume el MFE de Afiliados desde `/afiliados`
+> mediante Module Federation. No hay autenticación, autorización ni sesión aún.
+> Los demás dominios y las etapas posteriores del roadmap se muestran como
+> información del Shell.
