@@ -36,3 +36,30 @@ export interface AuthState {
    */
   loading: boolean;
 }
+
+export interface AuthContextType {
+  /**
+   * Indica si el usuario está autenticado.
+   */
+  isAuthenticated: boolean;
+
+  /**
+   * Datos del usuario autenticado. `undefined` si no autenticado.
+   */
+  user?: AuthUser;
+
+  /**
+   * Estado de carga de la inicialización de autenticación.
+   */
+  loading: boolean;
+
+  /**
+   * Inicia el flujo de login (redirige a Keycloak).
+   */
+  login: () => Promise<void>;
+
+  /**
+   * Cierra la sesión (logout en Keycloak + limpieza de estado).
+   */
+  logout: () => Promise<void>;
+}

@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { ROUTE_LINKS, SECTION_LINKS, SHELL } from "@/config/architecture";
 import styles from "./Navbar.module.css";
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * Navbar del Shell.
  *
  * Pertenece al HOST: los Microfrontends no controlan la navegación global.
- * Los enlaces apuntan a secciones de la misma página. El botón "Iniciar
- * sesión" es únicamente visual: la autenticación llega en una etapa posterior.
+ * Los enlaces apuntan a secciones de la misma página.
+ *
+ * La autenticación se gestiona mediante AuthContext y Keycloak.
  */
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const { login } = useAuth();
 
   return (
     <header className={styles.header}>
@@ -76,8 +79,9 @@ export function Navbar() {
           <button
             type="button"
             className={styles.login}
-            aria-disabled="true"
+            aria-disabled="false"
             title="La autenticación se implementará en una etapa posterior"
+            onClick={login}
           >
             Iniciar sesión
           </button>

@@ -1,41 +1,109 @@
-import { AuthUser } from "@/Models/Auth";
-import { createContext } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import {
+  AuthContextType,
+  AuthState,
+} from "@/Models/Auth";
+
+import AuthService from "@/Service/AuthService";
 
 /**
- * Contrato del Contexto de Autenticación (AuthContext).
+ * Contexto de autenticación del Shell.
  *
- * Define la API pública que expondrá `AuthProvider` y consumirá `useAuth()`.
- * Combina estado (datos) y acciones (comportamiento).
- *
- * No incluye roles/permisos (se añadirá en una etapa posterior).
+ * Expone el estado y las acciones de autenticación
+ * al resto de componentes mediante useAuth().
  */
-export interface AuthContextType {
-  /**
-   * Indica si el usuario está autenticado.
-   */
-  isAuthenticated: boolean;
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+/**
+ * Provider de autenticación.
+ *
+ * Mantiene el estado global de autenticación del Shell
+ * y delega la comunicación con Keycloak a AuthService.
+ */
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [authState, setAuthState] = useState<AuthState>({
+    isAuthenticated: false,
+    user: undefined,
+    loading: true,
+  });
 
   /**
-   * Datos del usuario autenticado. `undefined` si no autenticado.
+   * Inicializa la autenticación cuando el Provider
+   * se monta por primera vez.
    */
-  user?: AuthUser;
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const state = await AuthService.init();
+
+        setAuthState(state);
+      } catch (error) {
+        console.error("Error inicializando autenticación:", error);
+
+        setAuthState({
+          isAuthenticated: false,
+          user: undefined,
+          loading: false,
+        });
+      }
+    };
+
+    initializeAuth();
+  }, []);
 
   /**
-   * Estado de carga de la inicialización de autenticación.
+   * Inicia el flujo de login de Keycloak.
    */
-  loading: boolean;
+  const login = async (): Promise<void> => {
+    await AuthService.login();
+  };
 
   /**
-   * Inicia el flujo de login (redirige a Keycloak).
+   * Cierra la sesión mediante Keycloak.
    */
-  login: () => Promise<void>;
+  const logout = async (): Promise<void> => {
+    await AuthService.logout();
+  };
 
-  /**
-   * Cierra la sesión (logout en Keycloak + limpieza de estado).
-   */
-  logout: () => Promise<void>;
+  return (
+    <AuthContext.Provider
+      value={{
+        ...authState,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+/**
+ * Hook para consumir el estado de autenticación.
+ *
+ * Solo puede utilizarse dentro de AuthProvider.
+ */
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used within AuthProvider"
+    );
+  }
+
+  return context;
+}
 
 export default AuthContext;
